@@ -5,11 +5,43 @@ import numpy as np
 import pandas as pd
 
 class DailyImage:
-    root = "https://www.nasa.gov/image-article/"
+    link = "https://www.nasa.gov/image-of-the-day/"
 
     @staticmethod
     def index_list() -> np.array:
         return np.array(['Link', 'Image', 'Date', 'Author', 'Credit', 'Description'])
+
+    @staticmethod
+    def image_index() -> list:
+        req = requests.get(DailyImage.link)
+        images = []
+
+        if(req.status_code == 200):
+            html_text = BeautifulSoup(req.text, 'lxml')
+
+            for tag in html_text.find_all(class_='hds-gallery-item-link', href=True):
+                image = DailyImage(tag['href'])
+                images.append(image)
+
+        else:
+            raise Exception("Nasa Website could not be found")
+        
+        return images
+
+    @staticmethod
+    def images_to_data(images) -> pd.DataFrame:
+        data_list = []
+        for image in images:
+            image.attribute_check()
+            data_list.append(image.to_list())
+        
+        np_data = np.array(data_list)
+        return pd.DataFrame(data=np_data, index=np.arange(1, len(images) + 1), columns=DailyImage.index_list())
+
+    @staticmethod
+    def scrape_list(images) -> None:
+        for image in images:
+            image.image_scrape()
 
     def __init__(self, link: str):
         self.link = link
@@ -73,7 +105,7 @@ class DailyImage:
             for p in descriptions:
                 self.description += p.text
 
-    def none_check(self) -> None:
+    def attribute_check(self) -> None:
         self.check_link()
         self.check_image()
         self.check_title()
@@ -114,27 +146,11 @@ class DailyImage:
         return [self.link, self.image, self.date, self.author, self.credit, self.description]
 
 def main():
-    link_root = "https://www.nasa.gov/image-of-the-day/"
-    req = requests.get(link_root)
+    images = DailyImage.image_index()
+    DailyImage.scrape_list(images)
+    df_daily = DailyImage.images_to_data(images)
 
-    if(req.status_code == 200):
-        html_text = BeautifulSoup(req.text, 'lxml')
-        images = []
-        for tag in html_text.find_all(class_='hds-gallery-item-link', href=True):
-            image = DailyImage(tag['href'])
-            image.image_scrape()
-            images.append(image)
-
-        data_list = []
-        for image in images:
-            image.none_check()
-            data_list.append(image.to_list())
-        
-        np_data = np.array(data_list)
-        df_daily = pd.DataFrame(data=np_data, index=np.arange(1, len(images) + 1), columns=DailyImage.index_list())
-        
-    else:
-        raise Exception("Nasa Website could not be found")
+    print(df_daily)
 
 if __name__ == "__main__":
     main()
