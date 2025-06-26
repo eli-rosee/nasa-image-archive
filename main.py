@@ -6,42 +6,37 @@ import pandas as pd
 
 class DailyImage:
     link = "https://www.nasa.gov/image-of-the-day/"
+    index_list = np.array(['Link', 'Image', 'Date', 'Author', 'Credit', 'Description'])
 
     @staticmethod
-    def index_list() -> np.array:
-        return np.array(['Link', 'Image', 'Date', 'Author', 'Credit', 'Description'])
+    def scrape_list(images) -> None:
+        for image in images:
+            image.image_scrape()
 
-    @staticmethod
-    def image_index() -> list:
-        req = requests.get(DailyImage.link)
+    @classmethod
+    def images_to_data(cls, images) -> pd.DataFrame:
+        data_list = []
+        for image in images:
+            data_list.append(image.to_list())
+        
+        return pd.DataFrame(data= np.array(data_list), index=np.arange(1, len(images) + 1), columns=cls.index_list)
+    
+    @classmethod
+    def fetch_images(cls) -> list:
+        req = requests.get(cls.link)
         images = []
 
         if(req.status_code == 200):
             html_text = BeautifulSoup(req.text, 'lxml')
 
             for tag in html_text.find_all(class_='hds-gallery-item-link', href=True):
-                image = DailyImage(tag['href'])
+                image = cls(tag['href'])
                 images.append(image)
 
         else:
             raise Exception("Nasa Website could not be found")
         
         return images
-
-    @staticmethod
-    def images_to_data(images) -> pd.DataFrame:
-        data_list = []
-        for image in images:
-            image.attribute_check()
-            data_list.append(image.to_list())
-        
-        np_data = np.array(data_list)
-        return pd.DataFrame(data=np_data, index=np.arange(1, len(images) + 1), columns=DailyImage.index_list())
-
-    @staticmethod
-    def scrape_list(images) -> None:
-        for image in images:
-            image.image_scrape()
 
     def __init__(self, link: str):
         self.link = link
@@ -71,22 +66,46 @@ class DailyImage:
         self.scrape_description()
         
     def scrape_image(self) -> None:
-        self.image = self.html_text.find('img', 'attachment-2048x2048 size-2048x2048')['src']
+        tag = self.html_text.find('img', class_='attachment-2048x2048 size-2048x2048')
+        if tag and 'src' in tag.attrs.keys():
+            self.image = tag['src']
+        else:
+            raise Exception("Cannot find image src")
 
     def scrape_title(self) -> None:
-        self.title = self.html_text.find('h1').text
+        title = self.html_text.find('h1').text
+        if title:
+            self.title = title
+        else:
+            raise Exception("Cannot find image title")
 
     def scrape_date(self) -> None:
-        self.date = self.html_text.find('span', 'heading-12 text-uppercase').text
+        date = self.html_text.find('span', class_='heading-12 text-uppercase').text
+
+        if date:
+            self.date = date
+        else:
+            raise Exception("Cannot find image date")
+
 
     def scrape_author(self) -> None:
-        self.author = self.html_text.find('h3', 'hds-meta-heading heading-14').text
+        author = self.html_text.find('h3', class_='hds-meta-heading heading-14').text
+
+        if author:
+            self.author = author
+        else:
+            raise Exception("Cannot find article author")
 
     def scrape_credit(self) -> None:
-        self.credit = self.html_text.find('div', 'hds-credits').text
+        credit = self.html_text.find('div', class_='hds-credits').text
+
+        if credit:
+            self.credit = credit
+        else:
+            raise Exception("Cannot find image credit")
 
     def scrape_description(self) -> None:
-        self.description = ''
+        description = ''
 
         bottom_credits = self.html_text.find('em')
 
@@ -96,57 +115,25 @@ class DailyImage:
             descriptions.reverse()
 
             for p in descriptions:
-                self.description += p.text
+                description += p.text
 
         else:
             time_tag = self.html_text.find('p')
             descriptions = time_tag.find_all_next('p')
 
             for p in descriptions:
-                self.description += p.text
-
-    def attribute_check(self) -> None:
-        self.check_link()
-        self.check_image()
-        self.check_title()
-        self.check_date()
-        self.check_author()
-        self.check_credit()
-        self.check_description()
-    
-    def check_link(self) -> None:
-        if not self.link:
-            raise ValueError(f'No link found for {self.title}')
+                description += p.text
         
-    def check_image(self) -> None:
-        if not self.image:
-            raise ValueError(f'No image found for {self.title}')
-        
-    def check_title(self) -> None:
-        if not self.title:
-            raise ValueError(f'No title found for {self.link}')
-        
-    def check_date(self) -> None:
-        if not self.date:
-            raise ValueError(f'No date found for {self.title}')
-        
-    def check_author(self) -> None:
-        if not self.author:
-            raise ValueError(f'No author found for {self.title}')
-        
-    def check_credit(self) -> None:
-        if not self.credit:
-            raise ValueError(f'No credit found for {self.title}')
-
-    def check_description(self) -> None:
-        if not self.description or self.description == '':
-            raise ValueError(f'No description found for {self.title}')
+        if description != '':
+            self.description = description
+        else:
+            raise Exception("Cannot determine image description")
         
     def to_list(self) -> list:
         return [self.link, self.image, self.date, self.author, self.credit, self.description]
 
 def main():
-    images = DailyImage.image_index()
+    images = DailyImage.fetch_images()
     DailyImage.scrape_list(images)
     df_daily = DailyImage.images_to_data(images)
 
