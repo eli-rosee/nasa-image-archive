@@ -1,2 +1,8 @@
 #ignore venv
 .venv/
+__pycache__
+.ipynb_checkpoints
+
+# Ignore images
+daily_image.png
+daily_image_text.png

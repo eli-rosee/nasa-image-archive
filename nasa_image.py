@@ -4,7 +4,7 @@ import requests
 import numpy as np
 import pandas as pd
 
-class DailyImage:
+class NasaImage:
     link = "https://www.nasa.gov/image-of-the-day/"
     index_list = np.array(['Link', 'Image', 'Date', 'Author', 'Credit', 'Description'])
 
@@ -22,8 +22,8 @@ class DailyImage:
         return pd.DataFrame(data= np.array(data_list), index=np.arange(1, len(images) + 1), columns=cls.index_list)
     
     @classmethod
-    def fetch_images(cls) -> list:
-        req = requests.get(cls.link)
+    def fetch_images(cls, path) -> list:
+        req = requests.get(cls.link + path)
         images = []
 
         if(req.status_code == 200):
@@ -133,7 +133,7 @@ class DailyImage:
         return [self.link, self.image, self.date, self.author, self.credit, self.description]
 
 def main():
-    images = DailyImage.fetch_images()
+    images = DailyImage.fetch_images("")
     DailyImage.scrape_list(images)
     df_daily = DailyImage.images_to_data(images)
 
