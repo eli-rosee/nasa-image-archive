@@ -8,36 +8,6 @@ class NasaImage:
     link = "https://www.nasa.gov/image-of-the-day/"
     index_list = np.array(['Link', 'Image', 'Date', 'Author', 'Credit', 'Description'])
 
-    @staticmethod
-    def scrape_list(images) -> None:
-        for image in images:
-            image.image_scrape()
-
-    @classmethod
-    def images_to_data(cls, images) -> pd.DataFrame:
-        data_list = []
-        for image in images:
-            data_list.append(image.to_list())
-        
-        return pd.DataFrame(data= np.array(data_list), index=np.arange(1, len(images) + 1), columns=cls.index_list)
-    
-    @classmethod
-    def fetch_images(cls, path) -> list:
-        req = requests.get(cls.link + path)
-        images = []
-
-        if(req.status_code == 200):
-            html_text = BeautifulSoup(req.text, 'lxml')
-
-            for tag in html_text.find_all(class_='hds-gallery-item-link', href=True):
-                image = cls(tag['href'])
-                images.append(image)
-
-        else:
-            raise Exception("Nasa Website could not be found")
-        
-        return images
-
     def __init__(self, link: str):
         self.link = link
         self.image = None
@@ -131,13 +101,3 @@ class NasaImage:
         
     def to_list(self) -> list:
         return [self.link, self.image, self.date, self.author, self.credit, self.description]
-
-def main():
-    images = DailyImage.fetch_images("")
-    DailyImage.scrape_list(images)
-    df_daily = DailyImage.images_to_data(images)
-
-    print(df_daily)
-
-if __name__ == "__main__":
-    main()
