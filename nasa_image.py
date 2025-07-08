@@ -24,13 +24,12 @@ class NasaImage:
         self.credit = None
         self.description = None
 
-        print(self.link)
         req = requests.get(self.link)
 
         if req.status_code == 200:
             self.html_text = BeautifulSoup(req.text, 'lxml')
         else:
-            raise Exception("Image website not found")
+            raise Exception(f'Image website not found: {self.link}')
 
     # defines the debugging printing verison for a NasaImage ob
     def __repr__(self) -> str:
