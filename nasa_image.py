@@ -17,7 +17,7 @@ class NasaImage:
         else:
             self.link = NasaImage.link
         
-        self.image = None
+        self.src = None
         self.title = None
         self.date = None
         self.author = None
@@ -33,11 +33,11 @@ class NasaImage:
 
     # defines the debugging printing verison for a NasaImage ob
     def __repr__(self) -> str:
-        return str(f'Link: {self.link}, Image: {self.image}, Title: {self.title}, Date: {self.date}, Author: {self.author}, Credit: {self.credit}, Description: {self.description}')
+        return str(f'Link: {self.link}, Src: {self.src}, Title: {self.title}, Date: {self.date}, Author: {self.author}, Credit: {self.credit}, Description: {self.description}')
 
     # calls all of the scraping functions to retrieve all data on a NasaImage ob
     def image_scrape(self) -> None:
-        self.scrape_image()
+        self.scrape_src()
         self.scrape_title()
         self.scrape_date()
         self.scrape_author()
@@ -45,10 +45,10 @@ class NasaImage:
         self.scrape_description()
 
     # scrapes the src of the NasaImage ob
-    def scrape_image(self) -> None:
+    def scrape_src(self) -> None:
         tag = self.html_text.find('img', class_='attachment-2048x2048 size-2048x2048')
         if tag and 'src' in tag.attrs.keys():
-            self.image = tag['src']
+            self.src = tag['src']
         else:
             raise Exception("Cannot find image src")
 
@@ -103,4 +103,4 @@ class NasaImage:
             raise Exception("Cannot determine image description")
         
     def to_list(self) -> list:
-        return [self.link, self.image, self.date, self.author, self.credit, self.description]
+        return [self.link, self.src, self.date, self.author, self.credit, self.description]

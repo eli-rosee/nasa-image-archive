@@ -12,7 +12,7 @@ class ImageDatabase:
 
     def __init__(self):
         print('\nInitializing Nasa Daily Image DataBase!\n')
-        self.data = []
+        self.images = []
         self.image_count = 0
         self.image_missed = 0
         self.req = requests.get(NasaImage.link)
@@ -27,7 +27,7 @@ class ImageDatabase:
                 response = self.fetch_images()
             else:
                 response = self.fetch_images(f'/page/{i}/')
-            self.data += response[0]
+            self.images += response[0]
             self.image_count += response[1]
             self.image_missed += response[2]
 
@@ -41,9 +41,18 @@ class ImageDatabase:
 
             print('--------------------------\n')
 
+        self.scrape_list(self.images)
+        maxes = self.get_max()
+
+        print(f'SRC Max: {maxes[0]}')
+        print(f'Title Max: {maxes[1]}')
+        print(f'Author Max: {maxes[2]}')
+        print(f'Credit Max: {maxes[3]}')
+        print(f'Description Max: {maxes[4]}')
+
+
     def fetch_images(self, path='') -> list:
         self.req = requests.get(NasaImage.link + path)
-        self.images = []
         image_count = 0
         invalid_image_count = 0
 
@@ -75,6 +84,28 @@ class ImageDatabase:
             data_list.append(image.to_list())
         
         return pd.DataFrame(data= np.array(data_list), index=np.arange(1, len(images) + 1), columns=NasaImage.index_list)
+    
+    def get_max(self) -> list:
+
+        src_max = 0
+        title_max = 0
+        author_max = 0
+        credit_max = 0
+        description_max = 0
+
+        for image in self.images:
+            if len(image.src) > src_max:
+                src_max = len(image.src)
+            if len(image.title) > title_max:
+                title_max = len(image.title)
+            if len(image.author) > author_max:
+                author_max = len(image.author)
+            if len(image.credit) > credit_max:
+                credit_max = len(image.credit)
+            if len(image.description) > description_max:
+                description_max = len(image.description)
+        
+        return [src_max, title_max, author_max, credit_max, description_max]
     
 if __name__ == "__main__":
     path = "/"
