@@ -2,14 +2,21 @@
 from bs4 import BeautifulSoup
 import requests
 import numpy as np
-import pandas as pd
 
+# Class is built to contain each nasa image along with its characteristics
 class NasaImage:
+
+    # defining class static variables
     link = "https://www.nasa.gov/image-of-the-day/"
     index_list = np.array(['Link', 'Image', 'Date', 'Author', 'Credit', 'Description'])
 
-    def __init__(self, link: str):
-        self.link = link
+    # initiates all vars to 0 and fetches daily image repo html text
+    def __init__(self, link=""):
+        if link:
+            self.link = link
+        else:
+            self.link = NasaImage.link
+        
         self.image = None
         self.title = None
         self.date = None
@@ -17,6 +24,7 @@ class NasaImage:
         self.credit = None
         self.description = None
 
+        print(self.link)
         req = requests.get(self.link)
 
         if req.status_code == 200:
@@ -24,9 +32,11 @@ class NasaImage:
         else:
             raise Exception("Image website not found")
 
+    # defines the debugging printing verison for a NasaImage ob
     def __repr__(self) -> str:
         return str(f'Link: {self.link}, Image: {self.image}, Title: {self.title}, Date: {self.date}, Author: {self.author}, Credit: {self.credit}, Description: {self.description}')
 
+    # calls all of the scraping functions to retrieve all data on a NasaImage ob
     def image_scrape(self) -> None:
         self.scrape_image()
         self.scrape_title()
@@ -34,7 +44,8 @@ class NasaImage:
         self.scrape_author()
         self.scrape_credit()
         self.scrape_description()
-        
+
+    # scrapes the src of the NasaImage ob
     def scrape_image(self) -> None:
         tag = self.html_text.find('img', class_='attachment-2048x2048 size-2048x2048')
         if tag and 'src' in tag.attrs.keys():
@@ -42,6 +53,7 @@ class NasaImage:
         else:
             raise Exception("Cannot find image src")
 
+    # scrapes the title of the NasaImage ob
     def scrape_title(self) -> None:
         title = self.html_text.find('h1').text
         if title:
@@ -49,6 +61,7 @@ class NasaImage:
         else:
             raise Exception("Cannot find image title")
 
+    # scrapes the date of the NasaImage ob
     def scrape_date(self) -> None:
         date = self.html_text.find('span', class_='heading-12 text-uppercase').text
 
@@ -57,7 +70,7 @@ class NasaImage:
         else:
             raise Exception("Cannot find image date")
 
-
+    # scrapes the author of the NasaImage ob
     def scrape_author(self) -> None:
         author = self.html_text.find('h3', class_='hds-meta-heading heading-14').text
 
@@ -65,7 +78,8 @@ class NasaImage:
             self.author = author
         else:
             raise Exception("Cannot find article author")
-
+    
+    # scrapes the credit of the NasaImage ob
     def scrape_credit(self) -> None:
         credit = self.html_text.find('div', class_='hds-credits').text
 
@@ -74,25 +88,15 @@ class NasaImage:
         else:
             raise Exception("Cannot find image credit")
 
+    # scrapes the description of the NasaImage ob
     def scrape_description(self) -> None:
         description = ''
 
-        bottom_credits = self.html_text.find('em')
+        time_tag = self.html_text.find('p')
+        descriptions = time_tag.find_all_next('p')
 
-        if bottom_credits:
-            parent = bottom_credits.find_parent()
-            descriptions = parent.find_all_previous('p',class_=False)
-            descriptions.reverse()
-
-            for p in descriptions:
-                description += p.text
-
-        else:
-            time_tag = self.html_text.find('p')
-            descriptions = time_tag.find_all_next('p')
-
-            for p in descriptions:
-                description += p.text
+        for p in descriptions:
+            description += p.text
         
         if description != '':
             self.description = description
