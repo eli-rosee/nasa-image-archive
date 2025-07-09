@@ -2,6 +2,7 @@
 from bs4 import BeautifulSoup
 import requests
 import numpy as np
+from datetime import datetime
 
 # Class is built to contain each nasa image along with its characteristics
 class NasaImage:
@@ -9,13 +10,10 @@ class NasaImage:
     # defining class static variables
     link = "https://www.nasa.gov/image-of-the-day/"
     index_list = np.array(['Link', 'Image', 'Date', 'Author', 'Credit', 'Description'])
-
+    months = {'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12}
     # initiates all vars to 0 and fetches daily image repo html text
-    def __init__(self, link=""):
-        if link:
-            self.link = link
-        else:
-            self.link = NasaImage.link
+    def __init__(self, link):
+        self.link = link
         
         self.src = None
         self.title = None
@@ -104,3 +102,15 @@ class NasaImage:
         
     def to_list(self) -> list:
         return [self.link, self.src, self.date, self.author, self.credit, self.description]
+
+    def date_conversion(self) -> list:
+        l = self.date.split()
+        l[1] = l[1].replace(",", "")
+        
+        year = int(l[2])
+        month = NasaImage.months[l[0]]
+        day = int(l[1])
+
+        date_ob = datetime(year, month, day)
+        self.date = date_ob.strftime('%F')
+        return self.date
