@@ -27,7 +27,7 @@ class ImageDatabase:
         cursor = conn.cursor()
 
         cursor.execute('''
-                       CREATE TABLE images (
+                    CREATE TABLE images (
                         id INTEGER PRIMARY KEY,
                         link TEXT,
                         src TEXT,
@@ -36,8 +36,8 @@ class ImageDatabase:
                         author TEXT,
                         credit TEXT,
                         description TEXT
-                        );
-                       ''')
+                    );
+                    ''')
 
         for i in tqdm(range(1, self.page_count + 1), desc='Total Scrape Progress: '):
             print(f'\n\n\nStarting Page {i} Search:\n')
@@ -110,10 +110,3 @@ class ImageDatabase:
     def scrape_list(self, images) -> None:
         for image in images:
             image.image_scrape()
-
-    def images_to_data(self, images) -> pd.DataFrame:
-        data_list = []
-        for image in images:
-            data_list.append(image.to_list())
-        
-        return pd.DataFrame(data= np.array(data_list), index=np.arange(1, len(images) + 1), columns=NasaImage.index_list)

@@ -2,7 +2,7 @@
 FILE="images.db"
 
 if test -f $FILE; then
-    echo f"\n$FILE exists and is being deleted"
+    echo "$FILE exists and is being deleted"
     rm $FILE
 fi
 
