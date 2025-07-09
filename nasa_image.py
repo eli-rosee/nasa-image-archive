@@ -9,12 +9,12 @@ class NasaImage:
 
     # defining class static variables
     link = "https://www.nasa.gov/image-of-the-day/"
-    index_list = np.array(['Link', 'Image', 'Date', 'Author', 'Credit', 'Description'])
+    index_list = np.array(['Link', 'Src', 'Date', 'Author', 'Credit', 'Description'])
     months = {'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12}
     # initiates all vars to 0 and fetches daily image repo html text
     def __init__(self, link):
+
         self.link = link
-        
         self.src = None
         self.title = None
         self.date = None
@@ -35,20 +35,14 @@ class NasaImage:
 
     # calls all of the scraping functions to retrieve all data on a NasaImage ob
     def image_scrape(self) -> None:
-        self.scrape_src()
         self.scrape_title()
+        self.scrape_src()
         self.scrape_date()
         self.scrape_author()
         self.scrape_credit()
         self.scrape_description()
 
-    # scrapes the src of the NasaImage ob
-    def scrape_src(self) -> None:
-        tag = self.html_text.find('img', class_='attachment-2048x2048 size-2048x2048')
-        if tag and 'src' in tag.attrs.keys():
-            self.src = tag['src']
-        else:
-            raise Exception("Cannot find image src")
+        self.date_conversion()
 
     # scrapes the title of the NasaImage ob
     def scrape_title(self) -> None:
@@ -56,7 +50,15 @@ class NasaImage:
         if title:
             self.title = title
         else:
-            raise Exception("Cannot find image title")
+            raise Exception(f'Cannot find image title for image: {self.link}')
+        
+    # scrapes the src of the NasaImage ob
+    def scrape_src(self) -> None:
+        tag = self.html_text.find('img', class_='attachment-2048x2048 size-2048x2048')
+        if tag and 'src' in tag.attrs.keys():
+            self.src = tag['src']
+        else:
+            raise Exception(f'Cannot find image src for image: {self.title}')
 
     # scrapes the date of the NasaImage ob
     def scrape_date(self) -> None:
@@ -65,7 +67,7 @@ class NasaImage:
         if date:
             self.date = date
         else:
-            raise Exception("Cannot find image date")
+            raise Exception(f'Cannot find image date for image: {self.title}')
 
     # scrapes the author of the NasaImage ob
     def scrape_author(self) -> None:
@@ -74,16 +76,16 @@ class NasaImage:
         if author:
             self.author = author
         else:
-            raise Exception("Cannot find article author")
+            raise Exception(f'Cannot find article author for image: {self.title}')
     
     # scrapes the credit of the NasaImage ob
     def scrape_credit(self) -> None:
-        credit = self.html_text.find('div', class_='hds-credits').text
+        credit = self.html_text.find('div', class_='hds-credits')
 
         if credit:
-            self.credit = credit
+            self.credit = credit.text
         else:
-            raise Exception("Cannot find image credit")
+            raise Exception(f'Cannot find image credit for image: {self.title}')
 
     # scrapes the description of the NasaImage ob
     def scrape_description(self) -> None:
@@ -98,19 +100,20 @@ class NasaImage:
         if description != '':
             self.description = description
         else:
-            raise Exception("Cannot determine image description")
+            raise Exception('Cannot determine image description for image: {self.title}')
         
-    def to_list(self) -> list:
-        return [self.link, self.src, self.date, self.author, self.credit, self.description]
+    def to_tuple(self) -> tuple:
+        return (self.link, self.src, self.title, self.date, self.author, self.credit, self.description)
 
-    def date_conversion(self) -> list:
-        l = self.date.split()
-        l[1] = l[1].replace(",", "")
+    def date_conversion(self) -> None:
+        if not self.date:
+            raise Exception('Trying to convert a NoneType Date for image: {self.title}')
         
+        l = self.date.split()
+
+        day = int(l[1].replace(",", ""))
         year = int(l[2])
         month = NasaImage.months[l[0]]
-        day = int(l[1])
 
         date_ob = datetime(year, month, day)
         self.date = date_ob.strftime('%F')
-        return self.date

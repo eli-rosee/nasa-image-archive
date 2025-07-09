@@ -5,22 +5,42 @@ from bs4 import BeautifulSoup
 import requests
 import re
 from tqdm import tqdm
+import sqlite3
 
 # class is built to store a pandas dataframe of the nasa image objects
 class ImageDatabase:
 
     def __init__(self):
         print('\nInitializing Nasa Daily Image DataBase!\n')
+
         self.images = []
         self.image_count = 0
         self.image_missed = 0
+        self.data_list = []
         self.req = requests.get(NasaImage.link)
+
         soup = BeautifulSoup(self.req.text, 'lxml')
         pages = soup.find_all('a', class_='page-numbers')
         self.page_count = int(pages[-2].text)
 
+        conn = sqlite3.connect('images.db')
+        cursor = conn.cursor()
+
+        cursor.execute('''
+                       CREATE TABLE images (
+                        id INTEGER PRIMARY KEY,
+                        link TEXT,
+                        src TEXT,
+                        title TEXT,
+                        date TEXT,
+                        author TEXT,
+                        credit TEXT,
+                        description TEXT
+                        );
+                       ''')
+
         for i in tqdm(range(1, self.page_count + 1), desc='Total Scrape Progress: '):
-            print(f'\n\n\nStarting Page {i} Scrape:\n')
+            print(f'\n\n\nStarting Page {i} Search:\n')
             response = ''
             if i == 1:
                 response = self.fetch_images()
@@ -31,9 +51,7 @@ class ImageDatabase:
             self.image_count += response[1]
             self.image_missed += response[2]
 
-            self.scrape_list(self.images)
-
-            print(f'\n-------Page {i} scrape-------')
+            print(f'\n-------Page {i} Search-------')
 
             print(f'Images on Page {i} found: {response[1]}')
             print(f'Images on Page {i} missed: {response[2]}\n')
@@ -43,6 +61,17 @@ class ImageDatabase:
 
             print('--------------------------\n')
 
+            print(f'\nScraping Image sites for Page {i}')
+            self.scrape_list(self.images)
+
+            for image in self.images:
+                self.data_list.append(image.to_tuple())
+                        
+            cursor.executemany('INSERT INTO images(link, src, title, date, author, credit, description) VALUES (?, ?, ?, ?, ?, ?, ?)', self.data_list)
+
+            for title in cursor.execute('SELECT * FROM images'):
+                print(title)
+
         self.scrape_list(self.images)
         maxes = self.get_max()
 
@@ -51,6 +80,8 @@ class ImageDatabase:
         print(f'Author Max: {maxes[2]}')
         print(f'Credit Max: {maxes[3]}')
         print(f'Description Max: {maxes[4]}')
+
+        conn.close()
 
 
     def fetch_images(self, path='') -> list:
