@@ -83,23 +83,39 @@ class NasaImage:
     def scrape_credit(self) -> None:
 
         credit = self.html_text.find_all(string=re.compile(r'[C|c]redit:'))
-        print(credit)
         credit = self.html_text.find_all('em')
 
+        first_run = True
+        colon = False
+        last_line = ''
+
         if credit:
-            print(credit)
             for line in credit:
-                print(line.text)
-                self.credit += line.text
+                text = line.text.strip()
+                if last_line:
+                    if last_line[-1] == ':':
+                        self.credit += ' '
+                        colon = True
+                if (not first_run and text and not colon):
+                    self.credit += chr(10)
+
+                self.credit += text
+                first_run = False
+                if text:
+                    colon = False
+                last_line = text
     
         else:
             credit = self.html_text.find_all('div', class_='hds-credits')
 
             if credit:
+                self.credit += "Image credit: "
                 for line in credit:
-                    self.credit += line.text
+                    self.credit += line.text.strip()
             else:
                 raise Exception(f'Cannot find image credit for image: {self.link}')
+        
+        print(self.credit + '\n')
 
     # scrapes the description of the NasaImage ob
     def scrape_description(self) -> None:

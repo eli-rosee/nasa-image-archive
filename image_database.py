@@ -11,22 +11,24 @@ import sqlite3
 class ImageDatabase:
 
     def __init__(self):
-        print('\nInitializing Nasa Daily Image DataBase!\n')
 
         self.images = []
         self.image_count = 0
         self.image_missed = 0
         self.data_list = []
         self.req = requests.get(NasaImage.link)
+        self.conn = None
+        self.cursor = None
 
         soup = BeautifulSoup(self.req.text, 'lxml')
         pages = soup.find_all('a', class_='page-numbers')
         self.page_count = int(pages[-2].text)
 
-        conn = sqlite3.connect('images.db')
-        cursor = conn.cursor()
+    def open_db(self):
+        self.conn = sqlite3.connect('images.db')
+        self.cursor = self.conn.cursor()
 
-        cursor.execute('''
+        self.cursor.execute('''
                     CREATE TABLE images (
                         id INTEGER PRIMARY KEY,
                         link TEXT,
@@ -38,6 +40,13 @@ class ImageDatabase:
                         description TEXT
                     );
                     ''')
+        
+    def close_db(self):
+        self.conn.close()
+
+    def scrape_data(self):
+
+        print('\nScrape Data method called! Starting Nasa image archive complete scrape...\n')
 
         for i in tqdm(range(1, self.page_count + 1), desc='Total Scrape Progress: '):
             print(f'\n\n\nStarting Page {i} Search:\n')
@@ -67,22 +76,9 @@ class ImageDatabase:
             for image in self.images:
                 self.data_list.append(image.to_tuple())
                         
-            cursor.executemany('INSERT INTO images(link, src, title, date, author, credit, description) VALUES (?, ?, ?, ?, ?, ?, ?)', self.data_list)
+            self.cursor.executemany('INSERT INTO images(link, src, title, date, author, credit, description) VALUES (?, ?, ?, ?, ?, ?, ?)', self.data_list)
 
-            for title in cursor.execute('SELECT * FROM images'):
-                print(title)
-
-        self.scrape_list(self.images)
-        maxes = self.get_max()
-
-        print(f'SRC Max: {maxes[0]}')
-        print(f'Title Max: {maxes[1]}')
-        print(f'Author Max: {maxes[2]}')
-        print(f'Credit Max: {maxes[3]}')
-        print(f'Description Max: {maxes[4]}')
-
-        conn.close()
-
+            self.select_db('SELECT title FROM images')
 
     def fetch_images(self, path='') -> list:
         self.req = requests.get(NasaImage.link + path)
@@ -106,6 +102,12 @@ class ImageDatabase:
             raise Exception("Nasa Website could not be found")
         
         return [self.images, image_count, invalid_image_count]
+    
+    def select_db(self, sql):
+        response = self.cursor.execute(sql)
+
+        for row in response:
+            print(row)
 
     def scrape_list(self, images) -> None:
         for image in images:
