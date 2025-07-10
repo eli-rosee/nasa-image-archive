@@ -52,7 +52,7 @@ class NasaImage:
             self.title = title
         else:
             raise Exception(f'Cannot find image title for image: {self.link}')
-        
+                
     # scrapes the src of the NasaImage ob
     def scrape_src(self) -> None:
         tag = self.html_text.find('img', class_='attachment-2048x2048 size-2048x2048')
@@ -60,7 +60,7 @@ class NasaImage:
             self.src = tag['src']
         else:
             raise Exception(f'Cannot find image src for image: {self.link}')
-
+        
     # scrapes the date of the NasaImage ob
     def scrape_date(self) -> None:
         date = self.html_text.find('span', class_='heading-12 text-uppercase').text
@@ -72,13 +72,18 @@ class NasaImage:
 
     # scrapes the author of the NasaImage ob
     def scrape_author(self) -> None:
-        author = self.html_text.find('h3', class_='hds-meta-heading heading-14').text
+        authors = self.html_text.find_all('h3', class_='hds-meta-heading heading-14')
+        first_run = True
 
-        if author:
-            self.author = author
+        if authors:
+            for author in authors:
+                if not first_run:
+                    self.author += chr(10)
+                self.author += author.text
+                first_run = False
         else:
             raise Exception(f'Cannot find article author for image: {self.link}')
-    
+            
     # scrapes the credit of the NasaImage ob
     def scrape_credit(self) -> None:
 
@@ -115,8 +120,6 @@ class NasaImage:
             else:
                 raise Exception(f'Cannot find image credit for image: {self.link}')
         
-        print(self.credit + '\n')
-
     # scrapes the description of the NasaImage ob
     def scrape_description(self) -> None:
         description = ''
@@ -127,19 +130,28 @@ class NasaImage:
 
         for p in paragraphs:
             if new_paragraph:
-                description += '\n'
+                description += chr(10)
                 new_paragraph = False
             try:
-                p['class']
-            except Exception as e:
                 if not p.find('em'):
+                    p['class']
+            except Exception as e:
+                try:
+                    a_text = p.a.text
+                    if not a_text == p.text:
+                        if not p.text[0:10] == 'Learn more':
+                            description += p.text
+                            new_paragraph = True
+                except Exception as e:
                     description += p.text
                     new_paragraph = True
-                
+
         if description != '':
             self.description = description
         else:
             raise Exception('Cannot determine image description for image: {self.link}')
+        
+        print(self.description + '\n\n')
         
     def to_tuple(self) -> tuple:
         return (self.link, self.src, self.title, self.date, self.author, self.credit, self.description)
