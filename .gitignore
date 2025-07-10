@@ -1,4 +1,4 @@
-#ignore venv
+#ignore venv, compiled python, and ipynb metadata
 .venv/
 __pycache__
 .ipynb_checkpoints
@@ -6,3 +6,6 @@ __pycache__
 # Ignore images
 daily_image.png
 daily_image_text.png
+
+# Ignore database
+images.db
