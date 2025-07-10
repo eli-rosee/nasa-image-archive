@@ -12,8 +12,12 @@ class NasaImage:
     link = "https://www.nasa.gov/image-of-the-day/"
     index_list = np.array(['Link', 'Src', 'Date', 'Author', 'Credit', 'Description'])
     months = {'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12}
+    limbo_imgs = 0
     # initiates all vars to 0 and fetches daily image repo html text
     def __init__(self, link):
+
+        if link == '':
+            raise Exception(f'Empty Link Supplied')
 
         self.link = link
         self.src = ''
@@ -36,14 +40,20 @@ class NasaImage:
 
     # calls all of the scraping functions to retrieve all data on a NasaImage ob
     def image_scrape(self) -> None:
+
+        unidentified = NasaImage.limbo_imgs
         self.scrape_title()
         self.scrape_src()
-        self.scrape_date()
-        self.scrape_author()
-        self.scrape_credit()
-        self.scrape_description()
 
-        self.date_conversion()
+        if unidentified == NasaImage.limbo_imgs:
+            self.scrape_date()
+            self.scrape_author()
+            self.scrape_credit()
+            self.scrape_description()
+
+            self.date_conversion()
+        else:
+            print(f'Skipping this image, unidentified images: {NasaImage.limbo_imgs}')
 
     # scrapes the title of the NasaImage ob
     def scrape_title(self) -> None:
@@ -59,7 +69,9 @@ class NasaImage:
         if tag and 'src' in tag.attrs.keys():
             self.src = tag['src']
         else:
-            raise Exception(f'Cannot find image src for image: {self.link}')
+            NasaImage.limbo_imgs += 1
+            print(f'Cannot find image src for image: {self.link}')
+            # raise Exception(f'Cannot find image src for image: {self.link}')
         
     # scrapes the date of the NasaImage ob
     def scrape_date(self) -> None:
@@ -118,7 +130,20 @@ class NasaImage:
                 for line in credit:
                     self.credit += line.text.strip()
             else:
-                raise Exception(f'Cannot find image credit for image: {self.link}')
+                try:
+                    credit = self.html_text.find(text=re.compile(r'Image Credit:')).parent
+                    credits = credit.find_all(text=True)
+                    first_run = True
+
+                    for credit in credits:
+                        if not first_run:
+                            self.credit += chr(10)
+                        
+                        self.credit += credit
+                        first_run = False
+
+                except Exception as e:
+                    self.credit = None
         
     # scrapes the description of the NasaImage ob
     def scrape_description(self) -> None:
@@ -146,13 +171,26 @@ class NasaImage:
                     description += p.text
                     new_paragraph = True
 
+        if description == '':
+            p = paragraphs[0]
+            text = []
+            for sibling in p.find('em').previous_siblings:
+                text.append(sibling.text)
+
+            text.reverse()
+            description = ''.join(text)
+
+            # for line in description:
+            #     if new_paragraph:
+            #         description += chr(10)
+            #         new_paragraph = False
+            #     description += p.text
+            #     new_paragraph = True
+            # raise Exception(f'Cannot determine image description for image: {self.link}')
+        
         if description != '':
             self.description = description
-        else:
-            raise Exception('Cannot determine image description for image: {self.link}')
-        
-        print(self.description + '\n\n')
-        
+                
     def to_tuple(self) -> tuple:
         return (self.link, self.src, self.title, self.date, self.author, self.credit, self.description)
 

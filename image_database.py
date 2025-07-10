@@ -49,6 +49,7 @@ class ImageDatabase:
         print('\nScrape Data method called! Starting Nasa image archive complete scrape...\n')
 
         for i in tqdm(range(1, self.page_count + 1), desc='Total Scrape Progress: '):
+            self.images = []
             print(f'\n\n\nStarting Page {i} Search:\n')
             response = ''
             if i == 1:
@@ -77,8 +78,6 @@ class ImageDatabase:
                 self.data_list.append(image.to_tuple())
                         
             self.cursor.executemany('INSERT INTO images(link, src, title, date, author, credit, description) VALUES (?, ?, ?, ?, ?, ?, ?)', self.data_list)
-
-            self.select_db('SELECT title FROM images')
 
     def fetch_images(self, path='') -> list:
         self.req = requests.get(NasaImage.link + path)
