@@ -32,6 +32,7 @@ class NasaImage:
         if req.status_code == 200:
             self.html_text = BeautifulSoup(req.text, 'lxml')
         else:
+
             raise Exception(f'Image website not found: {self.link}')
 
     # defines the debugging printing verison for a NasaImage ob
@@ -53,7 +54,7 @@ class NasaImage:
 
             self.date_conversion()
         else:
-            print(f'Skipping this image, unidentified images: {NasaImage.limbo_imgs}')
+            raise Exception(f'Skipping this image, unidentified images: {NasaImage.limbo_imgs}')
 
     # scrapes the title of the NasaImage ob
     def scrape_title(self) -> None:
@@ -69,9 +70,19 @@ class NasaImage:
         if tag and 'src' in tag.attrs.keys():
             self.src = tag['src']
         else:
-            NasaImage.limbo_imgs += 1
-            print(f'Cannot find image src for image: {self.link}')
-            # raise Exception(f'Cannot find image src for image: {self.link}')
+            tag = self.html_text.find('hds-attachment-single__image margin-bottom-2 desktop:margin-bottom-0')
+
+            if tag and 'src' in tag.attrs.keys():
+                self.src = tag['src']
+            else:
+                tag = self.html_text.find('hds-media-inner hds-cover-wrapper hds-media-ratio-cover')
+                
+                if tag and 'src' in tag.attrs.keys():
+                    NasaImage.limbo_imgs += 1
+                    raise Exception(f'Nasa Article has incorrectly sourced image for image: {self.link}')
+                else:
+                    NasaImage.limbo_imgs += 1
+                    raise Exception(f'Cannot find image src for image: {self.link}')
         
     # scrapes the date of the NasaImage ob
     def scrape_date(self) -> None:
