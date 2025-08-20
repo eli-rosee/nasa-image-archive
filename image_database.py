@@ -81,8 +81,8 @@ class ImageDatabase:
 
     def fetch_images(self, path='') -> list:
         self.req = requests.get(NasaImage.link + path)
-        image_count = 0
-        invalid_image_count = 0
+        self.image_count = 0
+        self.invalid_image_count = 0
 
         if(self.req.status_code == 200):
             html_text = BeautifulSoup(self.req.text, 'lxml')
@@ -91,16 +91,16 @@ class ImageDatabase:
                 try:
                     image = NasaImage(tag['href'])
                     self.images.append(image)
-                    image_count += 1
+                    self.image_count += 1
 
                 except Exception as e:
                     print(f'{e}. Skipping...')
-                    invalid_image_count += 1
+                    self.invalid_image_count += 1
 
         else:
             raise Exception("Nasa Website could not be found")
         
-        return [self.images, image_count, invalid_image_count]
+        return [self.images, self.image_count, self.invalid_image_count]
     
     def select_db(self, sql):
         response = self.cursor.execute(sql)
