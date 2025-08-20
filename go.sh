@@ -1,9 +1,27 @@
 #!/bin/bash
-FILE="images.db"
+DATABASE="images.db"
+OUTPUT="out.log"
+ERROR="error.log"
 
-if test -f $FILE; then
-    echo "$FILE exists and is being deleted"
-    rm $FILE
+if test -f $DATABASE; 
+then
+    echo "$DATABASE exists and is being deleted"
+    rm $DATABASE
 fi
 
-python3 main.py
+if test -f $OUTPUT; 
+then
+    echo "$DATABASE exists and is being deleted"
+    rm $DATABASE
+fi
+
+if test -f $ERROR; 
+then
+    echo "$DATABASE exists and is being deleted"
+    rm $DATABASE
+fi
+
+touch $OUTPUT
+touch $ERROR
+
+python3 main.py >$OUTPUT 2>$ERROR

@@ -11,12 +11,15 @@ import sqlite3
 class ImageDatabase:
 
     def __init__(self):
+        self.req = requests.get(NasaImage.link)
 
-        self.images = []
         self.image_count = 0
         self.image_missed = 0
+        self.scrape_errors = 0
+
+        self.images = []
         self.data_list = []
-        self.req = requests.get(NasaImage.link)
+
         self.conn = None
         self.cursor = None
 
@@ -45,8 +48,6 @@ class ImageDatabase:
         self.conn.close()
 
     def scrape_data(self):
-
-        print('\nScrape Data method called! Starting Nasa image archive complete scrape...\n')
 
         for i in tqdm(range(1, self.page_count + 1), desc='Total Scrape Progress: '):
             self.images = []
@@ -110,4 +111,8 @@ class ImageDatabase:
 
     def scrape_list(self, images) -> None:
         for image in images:
-            image.image_scrape()
+            try:
+                image.image_scrape()
+            except Exception as e:
+                print(f'{e}. Skipping...')
+                self.scrape_errors += 1
