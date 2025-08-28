@@ -28,7 +28,7 @@ def individual_page(page_num):
     db.scrape_list(db.images)
 
 def main():
-    database_builder()
+    individual_page('38')
 
 if __name__ == '__main__':
     main()

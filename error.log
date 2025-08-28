@@ -1,32 +1,0 @@
-Total Scrape Progress:   0%|          | 0/132 [00:00<?, ?it/s]Total Scrape Progress:   1%|          | 1/132 [00:06<15:05,  6.91s/it]Total Scrape Progress:   2%|▏         | 2/132 [00:15<16:35,  7.66s/it]Total Scrape Progress:   2%|▏         | 2/132 [00:15<16:51,  7.78s/it]
-Traceback (most recent call last):
-  File "/home/elijr/nasa-image-archive/main.py", line 34, in <module>
-    main()
-  File "/home/elijr/nasa-image-archive/main.py", line 31, in main
-    database_builder()
-  File "/home/elijr/nasa-image-archive/main.py", line 12, in database_builder
-    db.scrape_data()
-  File "/home/elijr/nasa-image-archive/image_database.py", line 59, in scrape_data
-    response = self.fetch_images(f'/page/{i}/')
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/elijr/nasa-image-archive/image_database.py", line 89, in fetch_images
-    html_text = BeautifulSoup(self.req.text, 'lxml')
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/elijr/nasa-image-archive/.venv/lib/python3.12/site-packages/bs4/__init__.py", line 473, in __init__
-    self._feed()
-  File "/home/elijr/nasa-image-archive/.venv/lib/python3.12/site-packages/bs4/__init__.py", line 658, in _feed
-    self.builder.feed(self.markup)
-  File "/home/elijr/nasa-image-archive/.venv/lib/python3.12/site-packages/bs4/builder/_lxml.py", line 484, in feed
-    self.parser.feed(markup)
-  File "src/lxml/parser.pxi", line 1331, in lxml.etree._FeedParser.feed
-  File "src/lxml/parser.pxi", line 1451, in lxml.etree._FeedParser.feed
-  File "src/lxml/parsertarget.pxi", line 161, in lxml.etree._TargetParserContext._handleParseResult
-  File "src/lxml/parsertarget.pxi", line 156, in lxml.etree._TargetParserContext._handleParseResult
-  File "src/lxml/etree.pyx", line 351, in lxml.etree._ExceptionContext._raise_if_stored
-  File "src/lxml/saxparser.pxi", line 451, in lxml.etree._handleSaxTargetStartNoNs
-  File "src/lxml/saxparser.pxi", line 466, in lxml.etree._callTargetSaxStart
-  File "src/lxml/parsertarget.pxi", line 94, in lxml.etree._PythonSaxParserTarget._handleSaxStart
-  File "/home/elijr/nasa-image-archive/.venv/lib/python3.12/site-packages/bs4/builder/_lxml.py", line 382, in start
-    final_attrs: AttributeDict = self.attribute_dict_class()
-                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-KeyboardInterrupt

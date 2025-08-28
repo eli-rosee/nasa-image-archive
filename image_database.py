@@ -80,7 +80,7 @@ class ImageDatabase:
                         
             self.cursor.executemany('INSERT INTO images(link, src, title, date, author, credit, description) VALUES (?, ?, ?, ?, ?, ?, ?)', self.data_list)
 
-    def fetch_images(self, path='') -> list:
+    def fetch_images(self, path='') -> None:
         self.req = requests.get(NasaImage.link + path)
         self.image_count = 0
         self.invalid_image_count = 0
