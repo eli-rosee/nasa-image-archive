@@ -1,7 +1,6 @@
 # imports
 from bs4 import BeautifulSoup
 import requests
-import numpy as np
 from datetime import datetime
 import re
 
