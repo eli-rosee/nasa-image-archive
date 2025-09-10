@@ -1,9 +1,6 @@
 from nasa_image import NasaImage
-import pandas as pd
-import numpy as np
 from bs4 import BeautifulSoup
 import requests
-import re
 from tqdm import tqdm
 import sqlite3
 
