@@ -57,6 +57,21 @@ class ImageDatabase:
 
             self.image_count += response[0]
             self.image_missed += response[1]
+            
+            self.conn.commit()
+
+            print(f'\n-------Page {i} Search-------')
+
+            print(f'Images on Page {i} found: {response[0]}')
+            print(f'Images on Page {i} missed: {response[1]}\n')
+
+            print(f'Total Images found: {self.conn.execute("SELECT COUNT(id) FROM images").fetchone()[0] + response[0]}')
+            print(f'Total Images missed: {self.image_missed}')
+
+            print('--------------------------\n')
+
+            print(f'\nScraping Image sites for Page {i}')
+            self.scrape_list(self.images)
 
             for image in self.images:
                 self.conn.execute(
@@ -66,23 +81,8 @@ class ImageDatabase:
                     """,
                     (image.link, image.src, image.title, image.date, image.author, image.credit, image.description)
                 )
-            
-            self.conn.commit()
 
-            print(f'\n-------Page {i} Search-------')
-
-            print(f'Images on Page {i} found: {response[0]}')
-            print(f'Images on Page {i} missed: {response[1]}\n')
-
-            print(f'Total Images found: {self.conn.execute("SELECT COUNT(id) FROM images").fetchone()[0]}')
-            print(f'Total Images missed: {self.image_missed}')
-
-            print('--------------------------\n')
-
-            print(f'\nScraping Image sites for Page {i}')
-            self.scrape_list(self.images)
-
-    def fetch_images(self, path='') -> None:
+    def fetch_images(self, path='') -> list:
         self.req = requests.get(NasaImage.link + path)
         image_count = 0
         invalid_image_count = 0

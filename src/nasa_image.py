@@ -20,12 +20,12 @@ class NasaImage:
             raise Exception(f'Empty Link Supplied')
 
         self.link = link
-        self.src = ""
-        self.title = ""
+        self.src = ''
+        self.title = ''
         self.date = None
-        self.author = ""
-        self.credit = ""
-        self.description = ""
+        self.author = ''
+        self.credit = ''
+        self.description = ''
 
         req = requests.get(self.link)
 
