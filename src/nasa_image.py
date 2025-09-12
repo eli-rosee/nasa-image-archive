@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import requests
 from datetime import datetime
 import re
+import numpy as np
 
 # Class is built to contain each nasa image along with its characteristics
 class NasaImage:
@@ -19,12 +20,12 @@ class NasaImage:
             raise Exception(f'Empty Link Supplied')
 
         self.link = link
-        self.src = ''
-        self.title = ''
+        self.src = ""
+        self.title = ""
         self.date = None
-        self.author = ''
-        self.credit = ''
-        self.description = ''
+        self.author = ""
+        self.credit = ""
+        self.description = ""
 
         req = requests.get(self.link)
 
@@ -189,14 +190,6 @@ class NasaImage:
 
             text.reverse()
             description = ''.join(text)
-
-            # for line in description:
-            #     if new_paragraph:
-            #         description += chr(10)
-            #         new_paragraph = False
-            #     description += p.text
-            #     new_paragraph = True
-            # raise Exception(f'Cannot determine image description for image: {self.link}')
         
         if description != '':
             self.description = description

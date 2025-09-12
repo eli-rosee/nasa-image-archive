@@ -25,7 +25,7 @@ class ImageDatabase:
         self.page_count = int(pages[-2].text)
 
     def open_db(self):
-        self.conn = sqlite3.connect('images.db')
+        self.conn = sqlite3.connect('data/images.db')
         self.cursor = self.conn.cursor()
 
         self.cursor.execute('''
@@ -55,16 +55,26 @@ class ImageDatabase:
             else:
                 response = self.fetch_images(f'/page/{i}/')
 
-            self.images = response[0]
-            self.image_count += response[1]
-            self.image_missed += response[2]
+            self.image_count += response[0]
+            self.image_missed += response[1]
+
+            for image in self.images:
+                self.conn.execute(
+                    """
+                    INSERT INTO images (link, src, title, date, author, credit, description)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (image.link, image.src, image.title, image.date, image.author, image.credit, image.description)
+                )
+            
+            self.conn.commit()
 
             print(f'\n-------Page {i} Search-------')
 
-            print(f'Images on Page {i} found: {response[1]}')
-            print(f'Images on Page {i} missed: {response[2]}\n')
+            print(f'Images on Page {i} found: {response[0]}')
+            print(f'Images on Page {i} missed: {response[1]}\n')
 
-            print(f'Total Images found: {self.image_count}')
+            print(f'Total Images found: {self.conn.execute("SELECT COUNT(id) FROM images").fetchone()[0]}')
             print(f'Total Images missed: {self.image_missed}')
 
             print('--------------------------\n')
@@ -72,15 +82,10 @@ class ImageDatabase:
             print(f'\nScraping Image sites for Page {i}')
             self.scrape_list(self.images)
 
-            for image in self.images:
-                self.data_list.append(image.to_tuple())
-                        
-            self.cursor.executemany('INSERT INTO images(link, src, title, date, author, credit, description) VALUES (?, ?, ?, ?, ?, ?, ?)', self.data_list)
-
     def fetch_images(self, path='') -> None:
         self.req = requests.get(NasaImage.link + path)
-        self.image_count = 0
-        self.invalid_image_count = 0
+        image_count = 0
+        invalid_image_count = 0
 
         if(self.req.status_code == 200):
             html_text = BeautifulSoup(self.req.text, 'lxml')
@@ -89,16 +94,16 @@ class ImageDatabase:
                 try:
                     image = NasaImage(tag['href'])
                     self.images.append(image)
-                    self.image_count += 1
+                    image_count += 1
 
                 except Exception as e:
                     print(f'{e}. Skipping...')
-                    self.invalid_image_count += 1
+                    invalid_image_count += 1
 
         else:
             raise Exception("Nasa Website could not be found")
         
-        return [self.images, self.image_count, self.invalid_image_count]
+        return [image_count, invalid_image_count]
     
     def select_db(self, sql):
         response = self.cursor.execute(sql)
